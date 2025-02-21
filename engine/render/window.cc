@@ -230,6 +230,8 @@ Window::Open()
 	glfwSetCursorPosCallback(this->window, Window::StaticMouseMoveCallback);
 	glfwSetCursorEnterCallback(this->window, Window::StaticMouseEnterLeaveCallback);
 	glfwSetScrollCallback(this->window, Window::StaticMouseScrollCallback);
+
+
 	// setup imgui implementation
     ImGui::CreateContext();
 	ImGui_ImplGlfwGL3_Init(this->window, false);
@@ -303,6 +305,14 @@ Window::SwapBuffers()
 		}
 		glfwSwapBuffers(this->window);
 	}
+}
+
+void Window::SetInputMode(int mode) {
+	glfwSetInputMode(window, GLFW_CURSOR, mode);
+}
+
+void Window::SetCursorPosition(double* xPos, double* yPos) {
+	glfwGetCursorPos(window, xPos, yPos);
 }
 
 } // namespace Display

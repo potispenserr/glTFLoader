@@ -127,6 +127,19 @@ public:
 		return *this;
 	}
 
+	///
+	///Overloads the == operator for vector comparison
+	///
+	bool operator==(const Vector4D& v) {
+		if (this->vecarray[0] == v.vecarray[0] && this->vecarray[1] == v.vecarray[1]){
+			if (this->vecarray[2] == v.vecarray[2]) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+
 	/*float operator [] (int i) const {
 		//return *(Vector4D*)(&mxarr[i]);
 		return vecarray[i];

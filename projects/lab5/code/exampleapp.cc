@@ -2,15 +2,13 @@
 // exampleapp.cc
 // (C) 2015-2018 Individual contributors, see AUTHORS file
 //------------------------------------------------------------------------------
-#include "config.h"
 #include "exampleapp.h"
 #include <cstring>
-#include "stb_image.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
-
+#include <memory>
+#
 
 
 const GLchar* vs =
@@ -101,8 +99,8 @@ namespace Example
 	{
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
+		//window->SetInputMode(GLFW_CURSOR_DISABLED);
 
-		ShaderObject lightShader = ShaderObject("./resources/LightingVS.vs", "./resources/LightingFS.fs");
 
 		Matrix4D projection = projection.perspective(75.0f, 800.0f / 600.0f, 0.1f, 100.0f);
 
@@ -116,20 +114,32 @@ namespace Example
 		
 		GraphicsNode lightCube;
 
-		lightCube.setMesh(MeshResource());
-		lightCube.setShader(ShaderObject("./resources/LightCubeVS.vs", "./resources/LightCubeFS.fs"));
-		lightCube.setTexture(TextureResource());
+		std::shared_ptr<MeshResource> pointLightMesh = std::make_shared<MeshResource>();
+		std::shared_ptr<TextureResource> lightTexPtr = std::make_shared<TextureResource>();
+		std::shared_ptr<ShaderObject> pointLightShader = std::make_shared<ShaderObject>("./resources/LightCubeVS.vs", "./resources/LightCubeFS.fs");
+
+
+		std::shared_ptr<MeshResource> objectMesh = std::make_shared<MeshResource>();
+		std::shared_ptr<ShaderObject> lightShader = std::make_shared<ShaderObject>("./resources/LightingVS.vs", "./resources/LightingFS.fs");
+		std::shared_ptr<TextureResource> texPtr = std::make_shared<TextureResource>();
+
+		lightCube.setMesh(pointLightMesh);
+		lightCube.setShader(pointLightShader);
+		lightCube.setTexture(lightTexPtr);
 		lightCube.setTransform(Matrix4D());
-		lightCube.loadObj("./resources/cube2.obj");
+		lightCube.getMesh()->loadObj("./resources/cube2.obj");
 		lightCube.bindGraphics("./resources/container2fixed.png");
 
-		gn.setMesh(MeshResource());
+		gn.setMesh(objectMesh);
 		gn.setShader(lightShader);
-		gn.setTexture(TextureResource());
+		gn.setTexture(texPtr);
 		gn.setTransform(Matrix4D());
-		gn.loadObj("./resources/cube2.obj");
+		gn.getMesh()->loadObj("./resources/cube2.obj");
 		gn.bindGraphics("./resources/container2fixed.png");
 
+		//gn.updateTransform(Matrix4D::scale(Vector4D(0.05, 0.05, 0.05)));
+
+		
 
 		LightNode light = LightNode(lightShader);
 		light.lightColor = Vector4D(1.0f, 1.0f, 1.0f);
@@ -137,10 +147,6 @@ namespace Example
 		light.intensity = 0.1;
 
 		light.setupLighting();
-
-
-		//enable this at some point
-		glDisable(GL_DEBUG_OUTPUT);
 
 
 		Matrix4D rot;
@@ -159,7 +165,6 @@ namespace Example
 		float lastX = 512.0f;
 		float lastY = 384.0f;
 		bool firstRotation = true;
-
 		
 
 		//render loop
@@ -336,6 +341,7 @@ namespace Example
 			gn.draw(cam, projection, light.lightPos);
 			lightCube.draw(cam, projection, light.lightPos);
 
+
 			///     _             _          __  __ 
 			///    | |           | |        / _|/ _|
 			///  __| | ___    ___| |_ _   _| |_| |_ 
@@ -343,7 +349,6 @@ namespace Example
 			///| (_| | (_) | \__ \ |_| |_| | | | |  
 			/// \__,_|\___/  |___/\__|\__,_|_| |_|  
 			
-
 
 			this->window->SwapBuffers();
 		}

@@ -226,12 +226,6 @@ public:
 		return mxarr[i];
 	}
 
-	const Vector4D& operator [] (const int i) const {
-		//return *(Vector4D*)(&mxarr[i]);
-		//return vecarray[i];
-		return mxarr[i];
-	}
-
 
 
 	///
@@ -419,20 +413,20 @@ public:
 		return persp;
 	}
 
-	Matrix4D static lookat(Vector4D camPos, Vector4D camTarget, Vector4D up) {
+	Matrix4D lookat(Vector4D camPos, Vector4D camTarget, Vector4D up) {
 
 		Vector4D directionToCam = (camTarget - camPos).norm();
 		Vector4D camRight = (up.cross(directionToCam, up)).norm();
 		Vector4D camUp = (camUp.cross(camRight, directionToCam)).norm();
 
 		Matrix4D lookat;
-		lookat[0][0] = camRight.x();
-		lookat[0][1] = camRight.y();
-		lookat[0][2] = camRight.z();
+		lookat[0][0] = camUp.x();
+		lookat[0][1] = camUp.y();
+		lookat[0][2] = camUp.z();
 
-		lookat[1][0] = camUp.x();
-		lookat[1][1] = camUp.y();
-		lookat[1][2] = camUp.z();
+		lookat[1][0] = camRight.x();
+		lookat[1][1] = camRight.y();
+		lookat[1][2] = camRight.z();
 
 		lookat[2][0] = -(directionToCam.x());
 		lookat[2][1] = -(directionToCam.y());
@@ -452,23 +446,21 @@ public:
 	/// Translate
 	///
 	static Matrix4D translation(Vector4D v) {
-		Matrix4D m = {1.0f, 0.0f, 0.0f, 0.0f,
+		return Matrix4D(1.0f, 0.0f, 0.0f, 0.0f,
 						0.0f, 1.0f, 0.0f, 0.0f,
 						0.0f, 0.0f, 1.0f, 0.0f,
-					    v.x(), v.y(), v.z(), 1.0f};
-		return m;
+					    v.x(), v.y(), v.z(), 1.0f);
 
 	}
 
 	/// 
 	/// Scale
 	/// 
-	static const Matrix4D scale(Vector4D v) {
-		Matrix4D m = {v.x(), 0.0f, 0.0f, 0.0f,
+	static Matrix4D scale(Vector4D v) {
+		return Matrix4D(v.x(), 0.0f, 0.0f, 0.0f,
 						0.0f, v.y(), 0.0f, 0.0f,
 						0.0f, 0.0f, v.z(), 0.0f,
-						0.0f, 0.0f, 0.0f,  1.0f};
-		return m;
+						0.0f, 0.0f, 0.0f,  1.0f);
 	}
 
 	///

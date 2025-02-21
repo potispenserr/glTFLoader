@@ -45,6 +45,11 @@ public:
 	/// swap buffers at end of frame
 	void SwapBuffers();
 
+	// disable or enable the cursor
+	void SetInputMode(int mode);
+
+	void SetCursorPosition(double* xPos, double* yPos);
+
 	/// set key press function callback
 	void SetKeyPressFunction(const std::function<void(int32, int32, int32, int32)>& func);
 	/// set mouse press function callback

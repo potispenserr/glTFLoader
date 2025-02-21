@@ -5,13 +5,13 @@ class LightNode
 {
 public:
 
-	LightNode(ShaderObject& lighting);
+	LightNode(std::shared_ptr<ShaderObject>& lighting);
 	~LightNode();
 	Vector4D lightPos;
 	Vector4D lightColor;
 	//intensity ranges from 0 - 1
 	float intensity = 0;
-	ShaderObject lightShader;
+	std::shared_ptr<ShaderObject> lightShader;
 	unsigned int lightVAO = -1;
 
 

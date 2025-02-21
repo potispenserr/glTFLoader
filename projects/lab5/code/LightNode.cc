@@ -1,6 +1,6 @@
 #include "LightNode.h"
 #include <stb_image.h>
-LightNode::LightNode(ShaderObject& lighting)
+LightNode::LightNode(std::shared_ptr<ShaderObject>& lighting)
 {
 	lightShader = lighting;
 
@@ -13,47 +13,19 @@ LightNode::~LightNode()
 
 
 void LightNode::setupLighting()
-{
-	
-	//lightCube.updateTransform(lightCube.getTransform().translation(lightPos));
-	//glGenVertexArrays(1, &lightVAO);
-	//glBindVertexArray(lightVAO);
+{	
 
-	//glBindBuffer(GL_ARRAY_BUFFER, lightCube.getMesh().get()->vertexbuffer);
+	lightShader.get()->use();
+	lightShader.get()->setVec3(std::string("lightColor"), lightColor);
+	lightShader.get()->setFloat(std::string("ambientIntensity"), 0.1f);
 
-	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-	//glEnableVertexAttribArray(0);
+	lightShader.get()->setInt(std::string("material.textureDiffuse"), 0);
+	lightShader.get()->setVec3(std::string("material.textureSpecular"), Vector4D(0.5f, 0.5f, 0.5f));
+	lightShader.get()->setFloat(std::string("material.shininess"), 64.0f);
 
-	//
-	////enable the normal attribute
-	//glEnableVertexAttribArray(1);
-
-	////set normal attributes
-	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, meshNorm));
-	//
-
-	//
-	////set texture attributes
-	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
-
-	////enable the texture attribute
-	//glEnableVertexAttribArray(2);
-
-	//diffuseTex.loadTex("./resources/container2fixed.png");
-	//specularTex.loadTex("./resources/container2_specularfixed.png");
-	
-
-	lightShader.use();
-	lightShader.setVec3(std::string("lightColor"), lightColor);
-	lightShader.setFloat(std::string("ambientIntensity"), 0.1f);
-
-	lightShader.setInt(std::string("material.textureDiffuse"), 0);
-	lightShader.setVec3(std::string("material.textureSpecular"), Vector4D(0.5f, 0.5f, 0.5f));
-	lightShader.setFloat(std::string("material.shininess"), 64.0f);
-
-	lightShader.setVec3(std::string("light.ambient"), Vector4D(0.2f, 0.2f, 0.2f));
-	lightShader.setVec3(std::string("light.diffuse"), Vector4D(0.5f, 0.5f, 0.5f));
-	lightShader.setVec3(std::string("light.specular"), Vector4D(1.0f, 1.0f, 1.0f));
+	lightShader.get()->setVec3(std::string("light.ambient"), Vector4D(0.2f, 0.2f, 0.2f));
+	lightShader.get()->setVec3(std::string("light.diffuse"), Vector4D(0.5f, 0.5f, 0.5f));
+	lightShader.get()->setVec3(std::string("light.specular"), Vector4D(1.0f, 1.0f, 1.0f));
 
 	
 

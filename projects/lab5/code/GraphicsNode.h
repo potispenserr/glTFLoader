@@ -8,6 +8,7 @@
 #include "Matrix4D.h"
 #include "Camera.h"
 #include <memory>
+
 class GraphicsNode
 {
 public:
@@ -23,9 +24,9 @@ public:
 	std::shared_ptr<TextureResource>& getTexture();
 	std::shared_ptr<ShaderObject>& getShader();
 
-	void setMesh(MeshResource newMesh);
-	void setTexture(TextureResource newTexture);
-	void setShader(ShaderObject newShader);
+	void setMesh(std::shared_ptr<MeshResource>& newMesh);
+	void setTexture(std::shared_ptr<TextureResource>& newTexture);
+	void setShader(std::shared_ptr<ShaderObject>& newShader);
 
 	void setTransform(Vector4D newTransform);
 	void setTransform(Matrix4D newTransform);
@@ -36,9 +37,6 @@ public:
 
 	void draw(Camera cam, Matrix4D projection, Vector4D lightPosition);
 
-	void loadObj(std::string pathToFile);
-
-	void loadGLTF(std::string pathToFile);
 
 	void clearMemory();
 
