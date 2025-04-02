@@ -3,7 +3,7 @@
 #--------------------------------------------------------------------------
 
 PROJECT(lab5)
-FILE(GLOB lab5_headers code/*.h *.hpp *.jpg *.obj *.gltf)
+FILE(GLOB lab5_headers code/*.h *.hpp *.jpg *.obj *.gltf *.glb)
 FILE(GLOB lab5_sources code/*.cc resources/*.vs resources/*.fs )
 
 SET(files_lab5 ${lab5_headers} ${lab5_sources})

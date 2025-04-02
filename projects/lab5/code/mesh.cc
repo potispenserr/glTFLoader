@@ -1,21 +1,37 @@
-#define TINYGLTF_IMPLEMENTATION
-#define TINYGLTF_USE_CPP14
 #include "mesh.h"
 #include "config.h"
 #include <fstream>
 #include <sstream>
+#define TINYGLTF_IMPLEMENTATION
+#define TINYGLTF_USE_CPP14
 #include "tiny_gltf.h"
+
 
 /// generate vertex buffer object
 void MeshResource::genvertexbuffer() {
+	if(isGLTF == false){
+		//generate buffer id
+		glGenBuffers(1, &vertexbuffer);
+
+		//bind buffer to id
+		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+
+		// copy vertex array to vertex buffer object
+		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+		return;
+	}
+	vbos.resize(glTFModel.buffers.size());
 	//generate buffer id
-	glGenBuffers(1, &vertexbuffer);
+	glGenBuffers(vbos.size(), vbos.data());
+	for(size_t i = 0; i < glTFModel.buffers.size(); ++i){
+		//bind buffer to id
+		glBindBuffer(GL_ARRAY_BUFFER, vbos[i]);
 
-	//bind buffer to id
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-
-	// copy vertex array to vertex buffer object
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+		// copy vertex array to vertex buffer object
+		glBufferStorage(GL_ARRAY_BUFFER, glTFModel.buffers[i].data.size(), glTFModel.buffers[i].data.data(), 0);
+	}
+	//clean up 
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 }
 
@@ -196,13 +212,38 @@ void MeshResource::loadObj(std::string pathToFile)
 
 void MeshResource::loadGLTF(std::string pathToFile)
 {
+	std::cout << "Loading GLTF" << "\n";
 	tinygltf::Model gltfModel;
 	tinygltf::TinyGLTF loader;
 	std::string error;
 	std::string warning;
 
 	bool result = loader.LoadASCIIFromFile(&gltfModel, &error, &warning, pathToFile);
+
+	if(!warning.empty()) {
+		std::cout << "Warning: " << warning << "\n";
+	}
+
+	if(!error.empty()) {
+		std::cout << "Error: " << error << "\n";
+		return;
+	}
+
+	if(!result) {
+		std::cout << "Failed to parse this glTF file" << "\n";
+		return;
+	}
+	std::cout << "glTF loaded" << "\n";
+
+	this->glTFModel = gltfModel;
+	isGLTF = true;
+	genvertexbuffer();
+	genGLTFVertexArray();
+
+	std::cout << "Finished setting up the glTF file" << "\n";
+
 }
+
 
 /// generate vertex array object
 void MeshResource::genvertexarray() {
@@ -212,6 +253,70 @@ void MeshResource::genvertexarray() {
 
 	//bind vertex array object
 	glBindVertexArray(vertexarray);
+}
+
+void MeshResource::genGLTFVertexArray() {
+	const GLuint VERTEX_ATTRIB_POSITION_IDX = 0;
+	const GLuint VERTEX_ATTRIB_NORMAL_IDX = 1;
+	const GLuint VERTEX_ATTRIB_TEXCOORD0_IDX = 2;
+
+	for (size_t meshI = 0; meshI < glTFModel.meshes.size(); meshI++) {
+		const auto &mesh = glTFModel.meshes[meshI];
+
+		std::vector<unsigned int> vaoRange;
+		vaoRange.push_back(vaos.size()); 
+		vaoRange.push_back(mesh.primitives.size());
+		meshIndexToVAORange.push_back(vaoRange);
+
+		vaos.resize(vaos.size() + mesh.primitives.size());
+		glGenVertexArrays(vaoRange[1], &vaos[vaoRange[0]]);
+
+		for (size_t primI = 0; primI < mesh.primitives.size(); primI++) {
+			const auto vao = vaos[vaoRange[0] + primI];
+			const auto &prim = mesh.primitives[primI];
+			glBindVertexArray(vao);
+
+			for(auto it = prim.attributes.begin(); it != prim.attributes.end(); ++it){
+				// 0 for Position, 1 for Normal, 2 for Texture
+				int attrib = 0;
+				if((*it).first == "NORMAL")
+				{
+					attrib = 1;
+				}
+				else if((*it).first == "TEXCOORD_0")
+				{
+					attrib = 2;
+				}
+				
+				
+				const auto &accessor = glTFModel.accessors[(*it).second];
+				const auto &buffView = glTFModel.bufferViews[accessor.bufferView];
+				
+				glEnableVertexAttribArray(attrib);
+				glBindBuffer(GL_ARRAY_BUFFER, vbos[buffView.buffer]);
+
+				const auto byteOffset = accessor.byteOffset + buffView.byteOffset;
+				glVertexAttribPointer(attrib, accessor.type,
+					accessor.componentType, GL_FALSE, buffView.byteStride, (void *)byteOffset);
+
+				
+			}
+			
+			// Index array if defined
+			if (prim.indices >= 0) {
+				const auto &accessor = glTFModel.accessors[prim.indices];
+				const auto &buffView = glTFModel.bufferViews[accessor.bufferView];
+
+				assert(GL_ELEMENT_ARRAY_BUFFER == buffView.target);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
+					vbos[buffView.buffer]); 
+			}
+		}
+	}
+	glBindVertexArray(0);
+
+	std::cout << "The VAO is " << vaos.size() << " cm long" << "\n";
+
 }
 
 /// generate index buffer

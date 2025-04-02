@@ -123,18 +123,20 @@ namespace Example
 		std::shared_ptr<ShaderObject> lightShader = std::make_shared<ShaderObject>("./resources/LightingVS.vs", "./resources/LightingFS.fs");
 		std::shared_ptr<TextureResource> texPtr = std::make_shared<TextureResource>();
 
-		lightCube.setMesh(pointLightMesh);
-		lightCube.setShader(pointLightShader);
-		lightCube.setTexture(lightTexPtr);
-		lightCube.setTransform(Matrix4D());
-		lightCube.getMesh()->loadObj("./resources/cube2.obj");
-		lightCube.bindGraphics("./resources/container2fixed.png");
+		// lightCube.setMesh(pointLightMesh);
+		// lightCube.setShader(pointLightShader);
+		// lightCube.setTexture(lightTexPtr);
+		// lightCube.setTransform(Matrix4D());
+		// lightCube.getMesh()->loadObj("./resources/cube2.obj");
+		// lightCube.bindGraphics("./resources/container2fixed.png");
 
 		gn.setMesh(objectMesh);
 		gn.setShader(lightShader);
 		gn.setTexture(texPtr);
 		gn.setTransform(Matrix4D());
-		gn.getMesh()->loadObj("./resources/cube2.obj");
+		//gn.getMesh()->loadObj("./resources/cube2.obj");
+		gn.getMesh()->isGLTF = true;
+		gn.getMesh()->loadGLTF("./resources/IcoSphere.gltf");
 		gn.bindGraphics("./resources/container2fixed.png");
 
 		//gn.updateTransform(Matrix4D::scale(Vector4D(0.05, 0.05, 0.05)));
@@ -339,7 +341,7 @@ namespace Example
 			cam.setView();
 			light.updateLighting(cam, projection, lightCube);
 			gn.draw(cam, projection, light.lightPos);
-			lightCube.draw(cam, projection, light.lightPos);
+			//lightCube.draw(cam, projection, light.lightPos);
 
 
 			///     _             _          __  __ 

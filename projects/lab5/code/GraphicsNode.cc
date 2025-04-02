@@ -94,11 +94,39 @@ void GraphicsNode::draw(Camera cam, Matrix4D projection, Vector4D lightPosition)
 	shader.get()->setVec3(std::string("viewPosition"), cam.camPos);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture.get()->texID);
+	if(mesh.get()->isGLTF == true){
+		for(auto nodeIt = mesh.get()->glTFModel.nodes.begin();  nodeIt != mesh.get()->glTFModel.nodes.end(); ++nodeIt){
+			auto node = *nodeIt;
+			
+			auto model = mesh.get()->glTFModel;
+			auto lol = node.mesh;
 
+			const auto &glTFmesh = model.meshes[node.mesh];
+            const auto vaoRange = mesh.get()->meshIndexToVAORange[node.mesh];
+            for (size_t primI = 0; primI < glTFmesh.primitives.size(); primI++) {
+              const auto vao = mesh.get()->vaos[vaoRange[0] + primI];
+              const auto &prim = glTFmesh.primitives[primI];
+              glBindVertexArray(vao);
 
+              if (prim.indices >= 0) {
+                const auto &accessor = model.accessors[prim.indices];
+                const auto &buffView = model.bufferViews[accessor.bufferView];
+                const auto byteOffset = accessor.byteOffset + buffView.byteOffset;
+                glDrawElements(prim.mode, accessor.count, 
+					accessor.componentType, (void *)byteOffset);
+              } else {
+
+                const auto accessorI = (*begin(prim.attributes)).second;
+                const auto &accessor = model.accessors[accessorI];
+                glDrawArrays(prim.mode, 0, accessor.count);
+              }
+            }
+          }
+
+		
+	}
 	glBindVertexArray(mesh.get()->vertexarray);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.get()->indexbuffer);
-	std::cout << "dumb shit" << "\n";
 	glDrawElements(GL_TRIANGLES, mesh.get()->indices.size(), GL_UNSIGNED_INT, 0);
 	//glDrawArrays(GL_TRIANGLES, 0, mesh.get()->verticies.size());
 
