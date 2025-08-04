@@ -410,33 +410,34 @@ public:
 		persp[2][2] = -(far + near) / (far - near);
 		persp[2][3] = -1;
 		persp[3][2] = -(2 * far * near) / (far - near);
+		persp[3][3] = 0.0f;
 		return persp;
 	}
 
 	Matrix4D lookat(Vector4D camPos, Vector4D camTarget, Vector4D up) {
 
 		Vector4D directionToCam = (camTarget - camPos).norm();
-		Vector4D camRight = (up.cross(directionToCam, up)).norm();
-		Vector4D camUp = (camUp.cross(camRight, directionToCam)).norm();
+		Vector4D camRight = (Vector4D::cross(directionToCam, up)).norm();
+		Vector4D camUp = (Vector4D::cross(camRight, directionToCam)).norm();
 
 		Matrix4D lookat;
-		lookat[0][0] = camUp.x();
-		lookat[0][1] = camUp.y();
-		lookat[0][2] = camUp.z();
+		lookat[0][0] = camRight.x();
+		lookat[1][0] = camRight.y();
+		lookat[2][0] = camRight.z();
 
-		lookat[1][0] = camRight.x();
-		lookat[1][1] = camRight.y();
-		lookat[1][2] = camRight.z();
+		lookat[0][1] = camUp.x();
+		lookat[1][1] = camUp.y();
+		lookat[2][1] = camUp.z();
 
-		lookat[2][0] = -(directionToCam.x());
-		lookat[2][1] = -(directionToCam.y());
-		lookat[2][2] = -(directionToCam.z());
+		lookat[0][2] = -directionToCam.x();
+		lookat[1][2] = -directionToCam.y();
+		lookat[2][2] = -directionToCam.z();
 
 
 
-		lookat[3][0] = (camRight.dot(camRight, camPos));
-		lookat[3][1] = (camUp.dot(camUp, camPos));
-		lookat[3][2] = (directionToCam.dot(directionToCam, camPos));
+		lookat[3][0] = -(Vector4D::dot(camRight, camPos));
+		lookat[3][1] = -(Vector4D::dot(camUp, camPos));
+		lookat[3][2] = (Vector4D::dot(directionToCam, camPos));
 
 		return lookat;
 

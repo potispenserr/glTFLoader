@@ -76,13 +76,6 @@ Matrix4D& GraphicsNode::getTransform()
 	return transform;
 }
 
-void GraphicsNode::bindGraphics(std::string pathToTextureFile)
-{
-
-	texture.get()->loadTex(pathToTextureFile);
-	shader.get()->use();
-
-}
 
 void GraphicsNode::draw(Camera cam, Matrix4D projection, Vector4D lightPosition)
 {	

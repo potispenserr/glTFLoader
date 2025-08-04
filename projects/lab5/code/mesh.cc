@@ -6,7 +6,6 @@
 #define TINYGLTF_USE_CPP14
 #include "tiny_gltf.h"
 
-
 /// generate vertex buffer object
 void MeshResource::genvertexbuffer() {
 	if(isGLTF == false){
@@ -203,11 +202,13 @@ void MeshResource::loadObj(std::string pathToFile)
 		}
 		std::cout << "finished loading obj" << "\n";
 		indexVertices(finalVerts);
+		//setVertices(finalVerts);
 
 	}
 	genvertexarray();
 	genvertexbuffer();
 	setattrib();
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexbuffer);
 }
 
 void MeshResource::loadGLTF(std::string pathToFile)
@@ -242,17 +243,6 @@ void MeshResource::loadGLTF(std::string pathToFile)
 
 	std::cout << "Finished setting up the glTF file" << "\n";
 
-}
-
-
-/// generate vertex array object
-void MeshResource::genvertexarray() {
-
-	//generate vertex array object id
-	glGenVertexArrays(1, &vertexarray);
-
-	//bind vertex array object
-	glBindVertexArray(vertexarray);
 }
 
 void MeshResource::genGLTFVertexArray() {
@@ -319,29 +309,41 @@ void MeshResource::genGLTFVertexArray() {
 
 }
 
+/// generate vertex array object
+void MeshResource::genvertexarray() {
+
+	//generate vertex array object id
+	glGenVertexArrays(1, &vertexarray);
+
+	//bind vertex array object
+	glBindVertexArray(vertexarray);
+}
+
 /// generate index buffer
-void MeshResource::indexVertices(std::vector<Vertex> verts) {
+void MeshResource::indexVertices(const std::vector<Vertex>& verts) {
 	std::cout << "indexing mesh" << "\n";
 	std::vector<Vertex> indexedVerts;
 	std::vector<unsigned int> indices;
 
 	indexedVerts.push_back(verts[0]);
 	indices.push_back(0);
-	bool matchingVertex = false;
-	for (int i = 1; i < verts.size(); i++) {
-		for (int j = 0; j < indexedVerts.size(); j++) {
-			if (isVertexEqual(verts[i], indexedVerts[j])) {
-				indices.push_back(j);
-				matchingVertex = true;
-				break;
-			}
 
+
+	std::map<Vertex, unsigned int> vertMap;
+	vertMap[verts[0]] = 0;
+
+	for (int i = 1; i < verts.size(); i++) {
+		unsigned int dupeIndex = 0;
+		bool dupeVertex = findMatchingVertexInMap(verts[i], vertMap, dupeIndex);
+		if (dupeVertex == true) {
+			indices.push_back(dupeIndex);
 		}
-		if (matchingVertex == false) {
+		else {
 			indexedVerts.push_back(verts[i]);
 			indices.push_back(indexedVerts.size() - 1);
+			vertMap[verts[i]] = indexedVerts.size() - 1;
 		}
-		matchingVertex = false;
+		dupeVertex = false;
 
 	}
 
@@ -351,23 +353,30 @@ void MeshResource::indexVertices(std::vector<Vertex> verts) {
 	//generate index buffer id
 	glGenBuffers(1, &indexbuffer);
 	//bind index buffer
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexbuffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(unsigned int), &this->indices[0], GL_STATIC_DRAW);
+	//Having this as GL_ELEMENT_ARRAY_BUFFER like a tutorial said caused a nasty bug where the first model would get fucked up 
+	// if 2 or more different objs were loaded
+	glBindBuffer(GL_ARRAY_BUFFER, indexbuffer);
+	glBufferData(GL_ARRAY_BUFFER, this->indices.size() * sizeof(unsigned int), &this->indices[0], GL_STATIC_DRAW);
 
 	std::cout << "finished indexing mesh" << "\n";
 }
 
-void MeshResource::setVertices(std::vector<Vertex> newVertices)
+void MeshResource::setVertices(const std::vector<Vertex>& newVertices)
 {
 	this->vertices = newVertices;
 }
 
-bool MeshResource::isVertexEqual(Vertex vert1, Vertex vert2)
+bool MeshResource::findMatchingVertexInMap(const Vertex& vertToFind, const std::map<Vertex, unsigned int>& vertMap, unsigned int& resultingIndex)
 {
-	if (vert1.position == vert2.position && vert1.meshNorm == vert2.meshNorm && vert1.texCoord == vert2.texCoord) {
+
+	auto it = vertMap.find(vertToFind);
+	if (it == vertMap.end()) {
+		return false;
+	}
+	else {
+		resultingIndex = it->second;
 		return true;
 	}
 	return false;
 }
-
 

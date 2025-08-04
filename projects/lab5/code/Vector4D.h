@@ -138,6 +138,23 @@ public:
 		}
 		return false;
 	}
+	///
+	///Overloads the < operator for vector comparison as well
+	///
+	bool operator<(const Vector4D& v) const {
+		if (this->vecarray[0] < v.vecarray[0] && this->vecarray[1] < v.vecarray[1] && this->vecarray[2] < v.vecarray[2]) {
+				return true;
+		}
+		return false;
+	}
+
+	bool operator!=(const Vector4D& v) const {
+		if (this->vecarray[0] != v.vecarray[0] && this->vecarray[1] != v.vecarray[1] && this->vecarray[2] != v.vecarray[2]) {
+			return true;
+		}
+		return false;
+	}
+
 
 
 	/*float operator [] (int i) const {
@@ -161,7 +178,7 @@ public:
 	///
 	/// Returns the dot product of 2 vectors
 	///
-	float dot(Vector4D& a, Vector4D& b) {
+	static float dot(Vector4D& a, Vector4D& b) {
 		float result = (a.vecarray[0] * b.vecarray[0]) + (a.vecarray[1] * b.vecarray[1]) + (a.vecarray[2] * b.vecarray[2]);
 
 		return(result);
@@ -199,4 +216,3 @@ public:
 
 	
 };
-

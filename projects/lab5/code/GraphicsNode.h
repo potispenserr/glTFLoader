@@ -9,6 +9,7 @@
 #include "Camera.h"
 #include <memory>
 
+
 class GraphicsNode
 {
 public:
@@ -33,7 +34,6 @@ public:
 	void updateTransform(Matrix4D transformToAdd);
 	Matrix4D& getTransform();
 
-	void bindGraphics(std::string pathToTextureFile);
 
 	void draw(Camera cam, Matrix4D projection, Vector4D lightPosition);
 
@@ -51,4 +51,3 @@ private:
 
 
 };
-

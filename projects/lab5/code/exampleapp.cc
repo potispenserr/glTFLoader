@@ -2,13 +2,16 @@
 // exampleapp.cc
 // (C) 2015-2018 Individual contributors, see AUTHORS file
 //------------------------------------------------------------------------------
+#include "config.h"
 #include "exampleapp.h"
 #include <cstring>
+#include "stb_image.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <memory>
-#
+
+
 
 
 const GLchar* vs =
@@ -101,8 +104,9 @@ namespace Example
 		glDepthFunc(GL_LESS);
 		//window->SetInputMode(GLFW_CURSOR_DISABLED);
 
+		float radFov = 45 * (PI / 180);
 
-		Matrix4D projection = projection.perspective(75.0f, 800.0f / 600.0f, 0.1f, 100.0f);
+		Matrix4D projection = projection.perspective(radFov, 800.0f / 600.0f, 0.1f, 100.0f);
 
 		cam.camPos = Vector4D(0.0f, 0.0f, 3.0f);
 		cam.camTarget = Vector4D(0.0f, 0.0f, 0.0f);
@@ -123,23 +127,37 @@ namespace Example
 		std::shared_ptr<ShaderObject> lightShader = std::make_shared<ShaderObject>("./resources/LightingVS.vs", "./resources/LightingFS.fs");
 		std::shared_ptr<TextureResource> texPtr = std::make_shared<TextureResource>();
 
-		// lightCube.setMesh(pointLightMesh);
-		// lightCube.setShader(pointLightShader);
-		// lightCube.setTexture(lightTexPtr);
-		// lightCube.setTransform(Matrix4D());
-		// lightCube.getMesh()->loadObj("./resources/cube2.obj");
-		// lightCube.bindGraphics("./resources/container2fixed.png");
+
+		pointLightMesh->loadObj("./resources/cube2.obj");
+		objectMesh->isGLTF = true;
+		objectMesh->loadGLTF("./resources/IcoSphere.gltf");
+
+		lightTexPtr->loadTex("./resources/container2fixed.png");
+		texPtr->loadTex("./resources/container2fixed.png");
+
+
+		lightCube.setMesh(pointLightMesh);
+		lightCube.setShader(pointLightShader);
+		lightCube.setTexture(lightTexPtr);
+		lightCube.setTransform(Matrix4D());
+
 
 		gn.setMesh(objectMesh);
 		gn.setShader(lightShader);
 		gn.setTexture(texPtr);
 		gn.setTransform(Matrix4D());
-		//gn.getMesh()->loadObj("./resources/cube2.obj");
-		gn.getMesh()->isGLTF = true;
-		gn.getMesh()->loadGLTF("./resources/IcoSphere.gltf");
-		gn.bindGraphics("./resources/container2fixed.png");
+
+		// gn2.setMesh(objectMesh);
+		// gn2.setShader(lightShader);
+		// gn2.setTexture(texPtr);
+		// gn2.setTransform(Matrix4D());
 
 		//gn.updateTransform(Matrix4D::scale(Vector4D(0.05, 0.05, 0.05)));
+
+		gn.updateTransform(Matrix4D::scale(Vector4D(0.3, 0.3, 0.3)));
+		gn2.updateTransform(Matrix4D::scale(Vector4D(0.3, 0.3, 0.3)));
+		gn2.updateTransform(Matrix4D::translation(Vector4D(2.0f, 2.0f, 2.0f)));
+
 
 		
 
@@ -199,13 +217,13 @@ namespace Example
 						cam.camPos = cam.camPos + cam.camFront * camSpeed;
 						break;
 					case GLFW_KEY_A:
-						cam.camPos = cam.camPos - Vector4D::cross(cam.camFront, cam.camUp).norm() * camSpeed;
+						cam.camPos = cam.camPos + Vector4D::cross(cam.camFront, cam.camUp).norm() * camSpeed;
 						break;
 					case GLFW_KEY_S:
 						cam.camPos = cam.camPos - cam.camFront * camSpeed;
 						break;
 					case GLFW_KEY_D:
-						cam.camPos = cam.camPos + Vector4D::cross(cam.camFront, cam.camUp).norm() * camSpeed;
+						cam.camPos = cam.camPos - Vector4D::cross(cam.camFront, cam.camUp).norm() * camSpeed;
 						break;
 					case GLFW_KEY_J:
 						light.lightPos = light.lightPos + Vector4D(0.5f, 0.0f, 0.0f);
@@ -244,14 +262,14 @@ namespace Example
 						cam.camPos = cam.camPos + cam.camFront * camSpeed;
 						break;
 					case GLFW_KEY_A:
-						cam.camPos = cam.camPos - Vector4D::cross(cam.camFront, cam.camUp).norm() * camSpeed;
+						cam.camPos = cam.camPos + Vector4D::cross(cam.camFront, cam.camUp).norm() * camSpeed;
 						break;
 					case GLFW_KEY_S:
 						cam.camPos = cam.camPos - cam.camFront * camSpeed;
 						break;
 
 					case GLFW_KEY_D:
-						cam.camPos = cam.camPos + Vector4D::cross(cam.camFront, cam.camUp).norm() * camSpeed;
+						cam.camPos = cam.camPos - Vector4D::cross(cam.camFront, cam.camUp).norm() * camSpeed;
 						break;
 					case GLFW_KEY_J:
 						light.lightPos = light.lightPos + Vector4D(0.5f, 0.0f, 0.0f);
@@ -316,8 +334,8 @@ namespace Example
 					xoffset *= speed;
 					yoffset *= speed;
 
-					yaw += xoffset;
-					pitch += yoffset;
+					yaw -= xoffset;
+					pitch -= yoffset;
 					
 
 					if (pitch > 89.0f) {
@@ -329,8 +347,8 @@ namespace Example
 
 					Vector4D direction;
 					float degrad = PI / 180;
-					direction.x() = cos(yaw * degrad) * cos(pitch * degrad);
-					direction.y() = sin(pitch * degrad);
+					direction.x() = -cos(yaw * degrad) * cos(pitch * degrad);
+					direction.y() = -sin(pitch * degrad);
 					direction.z() = sin(yaw * degrad) * cos(pitch * degrad);
 
 					cam.camFront = direction.norm();
@@ -341,8 +359,8 @@ namespace Example
 			cam.setView();
 			light.updateLighting(cam, projection, lightCube);
 			gn.draw(cam, projection, light.lightPos);
-			//lightCube.draw(cam, projection, light.lightPos);
-
+			lightCube.draw(cam, projection, light.lightPos);
+			//gn2.draw(cam, projection, light.lightPos);
 
 			///     _             _          __  __ 
 			///    | |           | |        / _|/ _|
@@ -352,10 +370,11 @@ namespace Example
 			/// \__,_|\___/  |___/\__|\__,_|_| |_|  
 			
 
+
 			this->window->SwapBuffers();
 		}
 		gn.clearMemory();
-		gn2.clearMemory();
+		//gn2.clearMemory();
 		glfwTerminate();
 	}
 }// namespace Example
